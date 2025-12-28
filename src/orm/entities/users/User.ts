@@ -1,61 +1,43 @@
 import bcrypt from 'bcryptjs';
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-import { Role, Language } from './types';
-
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({
-    unique: true,
-  })
-  email: string;
-
-  @Column()
-  password: string;
-
-  @Column({
-    nullable: true,
-    unique: true,
-  })
-  username: string;
-
-  @Column({
-    nullable: true,
-  })
+  @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({
-    default: 'STANDARD' as Role,
-    length: 30,
-  })
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  surname: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  patronymic: string;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  email: string;
+
+  @Column({ type: 'varchar', length: 255 })
+  password: string;
+
+  @Column({ type: 'varchar', length: 20, nullable: true, unique: true })
+  tel_number: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'USER' })
   role: string;
 
-  @Column({
-    default: 'en-US' as Language,
-    length: 15,
-  })
-  language: string;
-
-  @Column()
   @CreateDateColumn()
   created_at: Date;
 
-  @Column()
   @UpdateDateColumn()
   updated_at: Date;
-
-  setLanguage(language: Language) {
-    this.language = language;
-  }
 
   hashPassword() {
     this.password = bcrypt.hashSync(this.password, 8);
   }
 
-  checkIfPasswordMatch(unencryptedPassword: string) {
-    return bcrypt.compareSync(unencryptedPassword, this.password);
+  checkIfPasswordMatch(password: string): boolean {
+    return bcrypt.compareSync(password, this.password);
   }
 }

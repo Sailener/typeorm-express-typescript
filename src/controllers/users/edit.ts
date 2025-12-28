@@ -1,34 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { getRepository } from 'typeorm';
 
-import { User } from 'orm/entities/users/User';
-import { CustomError } from 'utils/response/custom-error/CustomError';
+import { UserResponseDTO } from '../../dto/UserResponseDTO';
+import { UserService } from '../../services/UserService';
+import { CustomError } from '../../utils/response/custom-error/CustomError';
 
 export const edit = async (req: Request, res: Response, next: NextFunction) => {
-  const id = req.params.id;
-  const { username, name } = req.body;
-
-  const userRepository = getRepository(User);
   try {
-    const user = await userRepository.findOne({ where: { id } });
-
-    if (!user) {
-      const customError = new CustomError(404, 'General', `User with id:${id} not found.`, ['User not found.']);
-      return next(customError);
-    }
-
-    user.username = username;
-    user.name = name;
-
-    try {
-      await userRepository.save(user);
-      res.customSuccess(200, 'User successfully saved.');
-    } catch (err) {
-      const customError = new CustomError(409, 'Raw', `User '${user.email}' can't be saved.`, null, err);
-      return next(customError);
-    }
+    const service = new UserService();
+    const user = await service.update(Number(req.params.id), req.body);
+    res.customSuccess(200, 'User updated.', new UserResponseDTO(user));
   } catch (err) {
-    const customError = new CustomError(400, 'Raw', 'Error', null, err);
-    return next(customError);
+    if (err instanceof CustomError) return next(err);
+    return next(new CustomError(400, 'Raw', 'Error', null, err));
   }
 };

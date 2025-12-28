@@ -1,21 +1,27 @@
 import { Request, Response, NextFunction } from 'express';
 import { getRepository } from 'typeorm';
 
-import { User } from 'orm/entities/users/User';
-import { CustomError } from 'utils/response/custom-error/CustomError';
-import { ErrorValidation } from 'utils/response/custom-error/types';
+import { User } from '../../../orm/entities/users/User';
+import { CustomError } from '../../../utils/response/custom-error/CustomError';
+import { ErrorValidation } from '../../../utils/response/custom-error/types';
 
 export const validatorEdit = async (req: Request, res: Response, next: NextFunction) => {
-  let { username, name } = req.body;
+  const { email, tel_number } = req.body;
   const errorsValidation: ErrorValidation[] = [];
   const userRepository = getRepository(User);
 
-  username = !username ? '' : username;
-  name = !name ? '' : name;
+  if (email) {
+    const user = await userRepository.findOne({ where: { email } });
+    if (user && user.id !== Number(req.params.id)) {
+      errorsValidation.push({ email: `Email '${email}' already exists` });
+    }
+  }
 
-  const user = await userRepository.findOne({ username });
-  if (user) {
-    errorsValidation.push({ username: `Username '${username}' already exists` });
+  if (tel_number) {
+    const user = await userRepository.findOne({ where: { tel_number } });
+    if (user && user.id !== Number(req.params.id)) {
+      errorsValidation.push({ tel_number: `Phone '${tel_number}' already exists` });
+    }
   }
 
   if (errorsValidation.length !== 0) {

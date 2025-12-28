@@ -4,7 +4,41 @@ services:
   be_boilerplate:
     container_name: 'be_boilerplate'
     build: .
+
+    command: npm run dev
     restart: always
+    ports:
+      - '4000:4000'
     volumes:
-      - .:/app/
+      - .:/app
       - /app/node_modules
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+
+      PG_HOST: db
+      PG_PORT: 5432
+      POSTGRES_USER: walter
+      POSTGRES_PASSWORD: white
+      POSTGRES_DB: boilerplate
+
+      JWT_SECRET: super_secret_key_123
+      JWT_EXPIRATION: 15m
+
+  db:
+    image: postgres:13-alpine
+    container_name: db
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: walter
+      POSTGRES_PASSWORD: white
+      POSTGRES_DB: boilerplate
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
